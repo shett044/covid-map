@@ -8,7 +8,9 @@ if(isset($_GET['add_location'])) {
 if(isset($_GET['confirm_location'])) {
     confirm_location();
 }
-
+if(isset($_GET['get_confirmed_locations'])) {
+    get_confirmed_locations();
+}
 
 
 function add_location(){
@@ -19,13 +21,17 @@ function add_location(){
     $lat = $_GET['lat'];
     $lng = $_GET['lng'];
     $description =$_GET['description'];
+    $date = date('Y-m-d h:i:s', time());
     // Inserts new row with place data.
     $query = sprintf("INSERT INTO locations " .
-        " (id, lat, lng, description) " .
-        " VALUES (NULL, '%s', '%s', '%s');",
+        " (id, lat, lng, description, submitted_date, confirmed_date) " .
+        " VALUES (NULL, '%s', '%s', '%s', '%s','%s');",
         mysqli_real_escape_string($con,$lat),
         mysqli_real_escape_string($con,$lng),
-        mysqli_real_escape_string($con,$description));
+        mysqli_real_escape_string($con,$description),
+        mysqli_real_escape_string($con,$date),
+        mysqli_real_escape_string($con,$date)
+        );
 
     $result = mysqli_query($con,$query);
     echo"Inserted Successfully";
@@ -49,23 +55,22 @@ function confirm_location(){
     }
 }
 function get_confirmed_locations(){
+    try{
     $con=mysqli_connect ("sql101.epizy.com","epiz_25484260", "xiJMzzwuqR","epiz_25484260_covid123");
     if (!$con) {
         die('Not connected : ' . mysqli_connect_error());
     }
     // update location with location_status if admin location_status.
     $sqldata = mysqli_query($con,"
-select id ,lat,lng,description,location_status as isconfirmed
+select id ,lat,lng,description, confirmed_date
 from locations WHERE  location_status = 1
   ");
-
     $rows = array();
 
     while($r = mysqli_fetch_assoc($sqldata)) {
         $rows[] = $r;
 
     }
-
     $indexed = array_map('array_values', $rows);
     //  $array = array_filter($indexed);
 
@@ -73,6 +78,10 @@ from locations WHERE  location_status = 1
     if (!$rows) {
         return null;
     }
+    }
+    catch (Exception $e) {
+    echo 'Caught exception: ',  $e->getMessage(), "\n";
+        }
 }
 function get_all_locations(){
     $con=mysqli_connect ("sql101.epizy.com","epiz_25484260", "xiJMzzwuqR","epiz_25484260_covid123");
