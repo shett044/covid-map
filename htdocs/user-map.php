@@ -34,7 +34,7 @@
    var red_icon = 'http://maps.google.com/mapfiles/ms/icons/red-dot.png';
    var purple_icon = 'http://maps.google.com/mapfiles/ms/icons/purple-dot.png';
    var gray_icon = 'https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=•|EEEEEE'
-   var green_icon = 'https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=•|00EF00'
+   var orange_icon = 'https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=•|FFD767'
     var success_markers = {}
 
     /**
@@ -81,7 +81,7 @@
             [id, lat,lng, desc,dt] = locations[i]
             marker_id = createMarker(lat, lng, desc, new google.maps.LatLng(lat,lng),true)
             marker = success_markers[marker_id]
-            marker.setIcon(green_icon)
+            marker.setIcon(red_icon)
             // setting custom html
             trs = [`<td id ='manual_description'><b>${desc}</b></td>`, `<tr><td>Confirmed case ${dt}</td></tr>`]
             table=  ` <table class=map1>${trs.join('\n')}</table>`
@@ -203,6 +203,7 @@ Returns markerId
        marker = new google.maps.Marker({
            map: map,
            title: place_title,
+           icon:orange_icon,
            position: place_position,
            animation: google.maps.Animation.DROP,
            id: 'marker_' + markerId,
