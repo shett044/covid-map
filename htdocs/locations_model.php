@@ -12,6 +12,11 @@ if(isset($_GET['get_confirmed_locations'])) {
     get_confirmed_locations();
 }
 
+if(isset($_GET['automate_confirm_location'])) {
+    automate_confirm_location();
+}
+
+
 
 function add_location(){
     $con=mysqli_connect ("sql101.epizy.com","epiz_25484260", "xiJMzzwuqR","epiz_25484260_covid123");
@@ -121,6 +126,20 @@ function array_flatten($array) {
         }
     }
     return $result;
+}
+
+function automate_confirm_location(){
+    $con=mysqli_connect ("sql101.epizy.com","epiz_25484260", "xiJMzzwuqR","epiz_25484260_covid123");
+    if (!$con) {
+        die('Not connected : ' . mysqli_connect_error());
+    }
+    // update location with confirm if admin confirm.
+    $query = "update locations set location_status = 1  WHERE location_status = 0 ";
+    $result = mysqli_query($con,$query);
+    echo "Updated Successfully";
+    if (!$result) {
+        die('Invalid query: ' . mysqli_error($con));
+    }
 }
 
 ?>
