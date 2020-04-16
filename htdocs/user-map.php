@@ -1,42 +1,113 @@
-
-
-<?php
-   include_once 'header.php';
-   include 'locations_model.php';
-   ?>
-<head>
-   <!--<script type="text/javascript"
-      src="https://maps.googleapis.com/maps/api/js?language=en&key=AIzaSyCPgOhAY-RUz7780qHD3e8p2kpyZVrll68">
-      </script>
-      -->
-   <style>
-      #pac-input {
-      background-color: #fff;
-      font-family: Roboto;
-      /* font-size: 15px; */
-      height: 5%;
-      margin-left:2px;
-      font-weight: 300;
-      /* padding: 0 11px 0 13px; */
-      text-overflow: ellipsis;
-      width: 70%;
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Corona map tracker</title>
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
       }
-   </style>
-</head>
-<body>
-   <h4> Enter location : 
-      <input id="pac-input" class="controls" type="text" placeholder="Type address">
-   </h4>
-   <div id="map"></div>
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #description {
+        font-family: Roboto;
+        font-size: 15px;
+        font-weight: 300;
+      }
 
-   <script>
-   
-   var red_icon = 'http://maps.google.com/mapfiles/ms/icons/red-dot.png';
-   var purple_icon = 'http://maps.google.com/mapfiles/ms/icons/purple-dot.png';
-   var gray_icon = 'https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=•|EEEEEE'
-   var orange_icon = 'https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=•|FFD767'
-    var success_markers = {}
+      #infowindow-content .title {
+        font-weight: bold;
+      }
 
+      #infowindow-content {
+        display: none;
+      }
+
+      #map #infowindow-content {
+        display: inline;
+      }
+
+      .pac-card {
+        margin: 10px 10px 0 0;
+        border-radius: 2px 0 0 2px;
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        outline: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        background-color: #fff;
+        font-family: Roboto;
+      }
+
+      #pac-container {
+        padding-bottom: 12px;
+        margin-right: 12px;
+      }
+
+      .pac-controls {
+        display: inline-block;
+        padding: 5px 11px;
+      }
+
+      .pac-controls label {
+        font-family: Roboto;
+        font-size: 13px;
+        font-weight: 300;
+      }
+
+      #pac-input {
+        background-color: #fff;
+        font-family: Roboto;
+        font-size: 15px;
+        font-weight: 300;
+        margin-left: 12px;
+        padding: 0 11px 0 13px;
+        text-overflow: ellipsis;
+        width: 400px;
+      }
+
+      #pac-input:focus {
+        border-color: #4d90fe;
+      }
+
+      #title {
+        color: #fff;
+        background-color: #4d90fe;
+        font-size: 25px;
+        font-weight: 500;
+        padding: 6px 12px;
+      }
+      #target {
+        width: 345px;
+      }
+    </style>
+  </head>
+  <body>
+    <input id="pac-input" class="controls" type="text" placeholder="Search Box">
+    <div id="map"></div>
+    <script>
+    var red_icon = 'red-dot.png';
+   var purple_icon = 'purple-dot.png';
+   var orange_icon = 'orange.png'
+
+   var map;
+   var markers = {};
+   var success_markers = {};
+   var openInfoBox = undefined;
+   var openMarkerId = undefined;
+   var getMarkerUniqueId = function(lat, lng) {
+       return lat + '_' + lng;
+   };
+
+   var getLatLng = function(lat, lng) {
+       return new google.maps.LatLng(lat, lng);
+   };
     /**
     * report report marker from map.
     * @param lat  A latitude of marker.
@@ -64,6 +135,25 @@
        openMarkerId = undefined
    }
 
+
+
+  /*
+   Perform Async Get request
+   */
+   function downloadUrl(url, callback) {
+       var request = window.ActiveXObject ?
+           new ActiveXObject('Microsoft.XMLHTTP') :
+           new XMLHttpRequest;
+
+       request.onreadystatechange = function() {
+           if (request.readyState == 4) {
+               callback(request.responseText, request.status);
+           }
+       };
+
+       request.open('GET', url, true);
+       request.send(null);
+   }
 
 
 
@@ -94,10 +184,6 @@
                         openInfoBox.close()
                     }
                     openInfoBox = new google.maps.InfoWindow();
-                    $("#confirmed").prop(confirmed, 1);
-                    $("#id").val(id);
-                    $("#description").val(desc);
-                    $("#form").show();
                     openInfoBox.setContent(marker.html);
                     openInfoBox.open(map, marker);
                 }
@@ -111,44 +197,13 @@
 
    }
 
-   /*
-   Perform Async Get request
-   */
-   function downloadUrl(url, callback) {
-       var request = window.ActiveXObject ?
-           new ActiveXObject('Microsoft.XMLHTTP') :
-           new XMLHttpRequest;
-
-       request.onreadystatechange = function() {
-           if (request.readyState == 4) {
-               callback(request.responseText, request.status);
-           }
-       };
-
-       request.open('GET', url, true);
-       request.send(null);
-   }
-
-   /*
+/*
    For GPS issues
    */
    function handleLocationError(browserHasGeolocation) {
        alert("Failed to load GPS Location: Get HTTPS certificate")
    }
-
-
-   var map;
-   var markers = {};
-   var openInfoBox;
-   var openMarkerId = undefined
-   var getMarkerUniqueId = function(lat, lng) {
-       return lat + '_' + lng;
-   };
-
-   var getLatLng = function(lat, lng) {
-       return new google.maps.LatLng(lat, lng);
-   };
-    /**
+ /**
     * Removes given marker from map.
     * @param {!google.maps.Marker} marker A google.maps.Marker instance that will be removed.
     * @param {!string} markerId Id of marker.
@@ -166,7 +221,8 @@
        delete markers[markerId]; // delete marker instance from markers object
        openMarkerId = undefined
    };
-   /**
+      
+  /**
     * Binds  click event to given marker and invokes a callback function that will remove the marker from map.
     * @param {!google.maps.Marker} marker A google.maps.Marker instance that the handler will binded.
     */
@@ -177,7 +233,6 @@
            infowindow = new google.maps.InfoWindow();
            infowindow.setContent(marker.html);
            infowindow.open(map, marker);
-           // removeMarker(marker, markerId); // remove it
        });
    };
 
@@ -212,7 +267,7 @@ Returns markerId
                "            <tr>\n" +
                "                <td id ='manual_description'><b >" + place_title + "</b></td>\n" +
                "                 </tr><tr> <td>Click to remove marker</td>\n" +
-                "<tr><td><input type='button' value='Report' onclick='reportData(" + lat + "," + lng + ")'/></td></tr>\n"+
+                "<tr><td><input type='button' value='Report case' onclick='reportData(" + lat + "," + lng + ")'/></td></tr>\n"+
                "        </table>\n" +
                "    </div>"
        });
@@ -260,21 +315,15 @@ Place marker with info window
        bindMarkerinfo(markers[markerId]); // bind infowindow with click event to marker
    }
 
-    
-   function initAutocomplete() {
-       map = new google.maps.Map(document.getElementById('map'), {
-           center: {
-               lat: -33.8688,
-               lng: 151.2195
-           },
-           zoom: 13,
+
+      function initAutocomplete() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          // center: {lat: -33.8688, lng: 151.2195},
+          zoom: 13,
            mapTypeId: 'roadmap',
            mapTypeControl: false
-       });
-      
-       //  infoWindow = new google.maps.InfoWindow;
-
-       // Try HTML5 geolocation.
+        });
+        // Try HTML5 geolocation.
        if (navigator.geolocation) {
            navigator.geolocation.getCurrentPosition(function(position) {
                var pos = {
@@ -289,20 +338,21 @@ Place marker with info window
            // Browser doesn't support Geolocation
            handleLocationError(false, map.getCenter());
        }
+        
 
 
 
-       // Create the search box and link it to the UI element.
-       var input = document.getElementById('pac-input');
-       var searchBox = new google.maps.places.SearchBox(input);
-       map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+        // Create the search box and link it to the UI element.
+        var input = document.getElementById('pac-input');
+        var searchBox = new google.maps.places.SearchBox(input);
+        map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
 
-       // Bias the SearchBox results towards current map's viewport.
-       map.addListener('bounds_changed', function() {
-           searchBox.setBounds(map.getBounds());
-       });
+        // Bias the SearchBox results towards current map's viewport.
+        map.addListener('bounds_changed', function() {
+          searchBox.setBounds(map.getBounds());
+        });
 
-       // Add confirmed cases
+        // Add confirmed cases
        confirmedURL = 'locations_model.php?get_confirmed_locations';
        downloadUrl(confirmedURL, addConfirmedReport)
 
@@ -313,11 +363,10 @@ Place marker with info window
 
            var places = searchBox.getPlaces();
 
-           if (places.length == 0) {
-               return;
-           }
-
-           // Clear out the old markers.
+          if (places.length == 0) {
+            return;
+          }
+          // Clear out the old markers.
            Object.values(markers).forEach(function(marker) {
                marker.setMap(null);
            });
@@ -336,23 +385,24 @@ Place marker with info window
                    fields: ['name', 'geometry'],
                };
 
-               service = new google.maps.places.PlacesService(map);
-
-               if (place.geometry.viewport) {
-                   // Only geocodes have viewport.
-                   bounds.union(place.geometry.viewport);
-               } else {
-                   bounds.extend(place.geometry.location);
-               }
-               openMarkerId = undefined
-               createPlaceMarker(place)
-
-           });
-           map.fitBounds(bounds);
+            service = new google.maps.places.PlacesService(map);
 
 
-       });
-       /**
+
+            if (place.geometry.viewport) {
+              // Only geocodes have viewport.
+              bounds.union(place.geometry.viewport);
+            } else {
+              bounds.extend(place.geometry.location);
+            }
+            openMarkerId = undefined
+            openInfoBox = undefined
+            createPlaceMarker(place)
+          });
+          map.fitBounds(bounds);
+        });
+
+          /**
         * Binds click event to given map and invokes a callback that appends a new marker to clicked location.
         */
        var addMarker = new google.maps.event.addListener(map, 'click', function(e) {
@@ -369,50 +419,10 @@ Place marker with info window
 
 
        });
+      }
 
-
-
-       /**
-        * loop through (Mysql) dynamic locations to add markers to map.
-        
-       var i;
-       var confirmed = 0;
-       for (i = 0; i < locations.length; i++) {
-           marker = new google.maps.Marker({
-               position: new google.maps.LatLng(locations[i][1], locations[i][2]),
-               map: map,
-               icon: locations[i][4] === '1' ? red_icon : purple_icon,
-               html: "<div>\n" +
-                   "<table class=\"map1\">\n" +
-                   "<tr>\n" +
-                   "<td><a>Description:</a></td>\n" +
-                   "<td><textarea disabled id='manual_description' placeholder='Description'>" + locations[i][3] + "</textarea></td></tr>\n" +
-                   "</table>\n" +
-                   "</div>"
-           });
-
-           google.maps.event.addListener(marker, 'click', (function(marker, i) {
-               return function() { < /script>
-                   infowindow = new google.maps.InfoWindow();
-                   confirmed = locations[i][4] === '1' ? 'checked' : 0;
-                   $("#confirmed").prop(confirmed, locations[i][4]);
-                   $("#id").val(locations[i][0]);
-                   $("#description").val(locations[i][3]);
-                   $("#form").show();
-                   infowindow.setContent(marker.html);
-                   infowindow.open(map, marker);
-               }
-           })(marker, i));
-       }
-*/
-
-   }
-
-   </script>
-   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCPgOhAY-RUz7780qHD3e8p2kpyZVrll68&libraries=places&callback=initAutocomplete"
-      async defer></script>
-   <?php
-      include_once 'footer.php';
-      
-      ?>
-</body>
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCPgOhAY-RUz7780qHD3e8p2kpyZVrll68&libraries=places&callback=initAutocomplete"
+         async defer></script>
+  </body>
+</html>
