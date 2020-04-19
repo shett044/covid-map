@@ -10,6 +10,13 @@
       #map {
         height: 100%;
       }
+
+      #legend{
+      background-color:white;
+      opacity:90%;
+      width:20%;
+      font-size:10px;
+      }
       /* Optional: Makes the sample page fill the window. */
       html, body {
         height: 100%;
@@ -69,7 +76,8 @@
         margin-left: 12px;
         padding: 0 11px 0 13px;
         text-overflow: ellipsis;
-        width: 400px;
+        width: 80%;
+        height:25px;
       }
 
       #pac-input:focus {
@@ -90,11 +98,32 @@
   </head>
   <body>
     <input id="pac-input" class="controls" type="text" placeholder="Search Box">
+
     <div id="map"></div>
+    <div id="legend"><h3>Legend</h3></div>
     <script>
+    function custom_icon(color){
+         var image = {
+            url: color,
+            // This marker is 20 pixels wide by 32 pixels high.
+            scaledSize: new google.maps.Size(17, 25), // scaled size
+            // origin: new google.maps.Point(0,0), // origin
+            // anchor: new google.maps.Point(0, 0) // anchor
+        };
+        return image
+    }
     var red_icon = 'red-dot.png';
-   var purple_icon = 'purple-dot.png';
-   var orange_icon = 'orange.png';
+    var red_icon = {icon: 'https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=•|B22222', name: 'BMC verified: Red Containment zone'};
+     var purple_icon = 'purple-dot.png';
+     var purple_icon = {icon:'https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=•|8A2BE2', name : 'Unverified Crowd report'};
+
+// moccasin FFDAB9
+    var orange_icon = {icon:'https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=•|E9967A', name : 'BMC verified: Orange Containment zone'};
+    var yellow_icon = 'yellow.png';
+    var yellow_icon = {icon:'https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=•|F0E68C', name : 'BMC verified: Yellow Containment zone'};
+
+    var icons_list=[red_icon, orange_icon, yellow_icon, purple_icon]
+
 
    var map;
    var markers = {};
@@ -114,9 +143,9 @@
     * @param lng A longitude of marker.
     */
    function reportData(lat, lng) {
-       
+
        var description = markers[getMarkerUniqueId(lat,lng)].title;
-       var url = 'locations_model.php?add_location&description=' + description + '&lat=' + lat + '&lng=' + lng;
+       var url = 'mum_locations_model.php?add_location&description=' + description + '&lat=' + lat + '&lng=' + lng;
        downloadUrl(url, function(data, responseCode) {
            if (responseCode === 200 && data.length > 1) {
                var markerId = getMarkerUniqueId(lat, lng); // get marker id by using clicked point's coordinate
@@ -156,6 +185,18 @@
    }
 
 
+    function issue_color_to_icon(color){
+        switch(color.toLowerCase()){
+        case "red":
+            return red_icon
+        case "orange":
+            return orange_icon
+        case "yellow":
+            return yellow_icon
+        default:
+            return purple_icon
+        }
+    }
 
    /**
    Callback from Get request that fetches confirmed reports.
@@ -168,10 +209,10 @@
         var i;
         var confirmed = 0;
         for (i = 0; i < locations.length; i++) {
-            [id, lat,lng, desc,dt] = locations[i]
+            [id, lat,lng, desc,dt, issue_color, isBMC] = locations[i]
             marker_id = createMarker(lat, lng, desc, new google.maps.LatLng(lat,lng),true)
             marker = success_markers[marker_id]
-            marker.setIcon(red_icon)
+            marker.setIcon(issue_color_to_icon(issue_color))
             // setting custom html
             trs = [`<td id ='manual_description'><b>${desc}</b></td>`, `<tr><td>Confirmed case ${dt}</td></tr>`]
             table=  ` <table class=map1>${trs.join('\n')}</table>`
@@ -180,7 +221,7 @@
             marker.html = `${info_html}`
             google.maps.event.addListener(marker, 'click', (function(marker, i) {
                 return function() {
-                    if (openInfoBox!= undefined){ 
+                    if (openInfoBox!= undefined){
                         openInfoBox.close()
                     }
                     openInfoBox = new google.maps.InfoWindow();
@@ -221,7 +262,7 @@
        delete markers[markerId]; // delete marker instance from markers object
        openMarkerId = undefined
    };
-      
+
   /**
     * Binds  click event to given marker and invokes a callback function that will remove the marker from map.
     * @param {!google.maps.Marker} marker A google.maps.Marker instance that the handler will binded.
@@ -248,7 +289,7 @@
        });
    };
 
-  
+
 /*
 Creates basic marker based on lat, long, place title and place position (Gmap format)
 Returns markerId
@@ -310,42 +351,57 @@ Place marker with info window
        openInfoBox = new google.maps.InfoWindow();
        openInfoBox.setContent(markers[markerId].html);
        openInfoBox.open(map, markers[markerId]);
-       
+
        bindRemoveMarker(markers[markerId]); // bind right click event to marker
-       bindMarkerinfo(markers[markerId]); // bind infowindow with click event to marker
+//        bindMarkerinfo(markers[markerId]); // bind infowindow with click event to marker
    }
 
 
       function initAutocomplete() {
         map = new google.maps.Map(document.getElementById('map'), {
           center: {lat: 19.076042, lng: 72.877535},
-          zoom: 13,
+          zoom: 18,
            mapTypeId: 'roadmap',
-           mapTypeControl: false
+           streetViewControl:false,
+           mapTypeControl: false,
         });
         // Try HTML5 geolocation.
-//        if (navigator.geolocation) {
-//            navigator.geolocation.getCurrentPosition(function(position) {
-//                var pos = {
-//                    lat: position.coords.latitude,
-//                    lng: position.coords.longitude
-//                };
-//                map.setCenter(pos);
-//            }, function() {
-//                handleLocationError(true, map.getCenter());
-//            });
-//        } else {
-//            // Browser doesn't support Geolocation
-//            handleLocationError(false, map.getCenter());
-//        }
-//
+       if (navigator.geolocation) {
+           navigator.geolocation.getCurrentPosition(function(position) {
+               var pos = {
+                   lat: position.coords.latitude,
+                   lng: position.coords.longitude
+               };
+               map.setCenter(pos);
+           }, function() {
+               handleLocationError(true, map.getCenter());
+           });
+       } else {
+           // Browser doesn't support Geolocation
+           handleLocationError(false, map.getCenter());
+       }
 
+        var legend = document.getElementById('legend');
+        for (var key in icons_list) {
+          var type = icons_list[key];
+          var name = type.name;
+          var icon = type.icon;
+          var div = document.createElement('div');
+          div.innerHTML = '<img src="' + icon + '"> ' + name;
+          legend.appendChild(div);
+        }
 
+        map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
+
+        red_icon = custom_icon(red_icon.icon)
+        purple_icon = custom_icon(purple_icon.icon)
+        orange_icon = custom_icon(orange_icon.icon)
+        yellow_icon = custom_icon(yellow_icon.icon)
 
         // Create the search box and link it to the UI element.
         var input = document.getElementById('pac-input');
         var searchBox = new google.maps.places.SearchBox(input);
-        map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+        map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
 
         // Bias the SearchBox results towards current map's viewport.
         map.addListener('bounds_changed', function() {
@@ -353,7 +409,7 @@ Place marker with info window
         });
 
         // Add confirmed cases
-       confirmedURL = 'locations_model.php?get_confirmed_locations';
+       confirmedURL = 'mum_locations_model.php?get_confirmed_locations';
        downloadUrl(confirmedURL, addConfirmedReport)
 
        // Listen for the event fired when the user selects a prediction and retrieve
@@ -419,6 +475,7 @@ Place marker with info window
 
 
        });
+
       }
 
     </script>

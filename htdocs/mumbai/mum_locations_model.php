@@ -28,13 +28,12 @@ function add_location(){
     $description =$_GET['description'];
     $date = date('Y-m-d h:i:s', time());
     // Inserts new row with place data.
-    $query = sprintf("INSERT INTO locations " .
-        " (id, lat, lng, description, submitted_date, confirmed_date) " .
-        " VALUES (NULL, '%s', '%s', '%s', '%s','%s');",
+    $query = sprintf("INSERT INTO mumbai_locations " .
+        " (Id, lat, lng, base_type, base64, issue_color, address, reported_date, is_verified_BMC) " .
+        " VALUES (NULL, '%s', '%s', NULL,NULL,'Purple','%s', '%s',0);",
         mysqli_real_escape_string($con,$lat),
         mysqli_real_escape_string($con,$lng),
         mysqli_real_escape_string($con,$description),
-        mysqli_real_escape_string($con,$date),
         mysqli_real_escape_string($con,$date)
         );
 
@@ -59,6 +58,32 @@ function confirm_location(){
         die('Invalid query: ' . mysqli_error($con));
     }
 }
+
+
+/**
+ * Encode array from latin1 to utf8 recursively
+ * @param $dat
+ * @return array|string
+ */
+function convert_from_latin1_to_utf8_recursively($dat)
+   {
+      if (is_string($dat)) {
+         return utf8_encode($dat);
+      } elseif (is_array($dat)) {
+         $ret = [];
+         foreach ($dat as $i => $d) $ret[ $i ] = convert_from_latin1_to_utf8_recursively($d);
+
+         return $ret;
+      } elseif (is_object($dat)) {
+         foreach ($dat as $i => $d) $dat->$i = convert_from_latin1_to_utf8_recursively($d);
+
+         return $dat;
+      } else {
+         return $dat;
+      }
+   }
+
+
 function get_confirmed_locations(){
     try{
     $con=mysqli_connect ("sql101.epizy.com","epiz_25484260", "xiJMzzwuqR","epiz_25484260_covid123");
@@ -67,8 +92,8 @@ function get_confirmed_locations(){
     }
     // update location with location_status if admin location_status.
     $sqldata = mysqli_query($con,"
-select id ,lat,lng,description, confirmed_date
-from locations WHERE  location_status = 1
+SELECT Id,Lat, lng, address, reported_date, issue_color, is_verified_BMC
+from mumbai_locations;
   ");
     $rows = array();
 
@@ -77,6 +102,8 @@ from locations WHERE  location_status = 1
 
     }
     $indexed = array_map('array_values', $rows);
+    // echo is_array($indexed);
+    $indexed = convert_from_latin1_to_utf8_recursively($indexed);
     //  $array = array_filter($indexed);
 
     echo json_encode($indexed);
@@ -88,58 +115,20 @@ from locations WHERE  location_status = 1
     echo 'Caught exception: ',  $e->getMessage(), "\n";
         }
 }
-function get_all_locations(){
-    $con=mysqli_connect ("sql101.epizy.com","epiz_25484260", "xiJMzzwuqR","epiz_25484260_covid123");
-    if (!$con) {
-        die('Not connected : ' . mysqli_connect_error());
-    }
-    // update location with location_status if admin location_status.
-    $sqldata = mysqli_query($con,"
-select id ,lat,lng,description,location_status as isconfirmed
-from locations
-  ");
 
-    $rows = array();
-    while($r = mysqli_fetch_assoc($sqldata)) {
-        $rows[] = $r;
-
-    }
-  $indexed = array_map('array_values', $rows);
-  //  $array = array_filter($indexed);
-
-    echo json_encode($indexed);
-    if (!$rows) {
-        return null;
-    }
-}
-function array_flatten($array) {
-    if (!is_array($array)) {
-        return FALSE;
-    }
-    $result = array();
-    foreach ($array as $key => $value) {
-        if (is_array($value)) {
-            $result = array_merge($result, array_flatten($value));
-        }
-        else {
-            $result[$key] = $value;
-        }
-    }
-    return $result;
-}
-
-function automate_confirm_location(){
-    $con=mysqli_connect ("sql101.epizy.com","epiz_25484260", "xiJMzzwuqR","epiz_25484260_covid123");
-    if (!$con) {
-        die('Not connected : ' . mysqli_connect_error());
-    }
-    // update location with confirm if admin confirm.
-    $query = "update locations set location_status = 1  WHERE location_status = 0 ";
-    $result = mysqli_query($con,$query);
-    echo "Updated Successfully";
-    if (!$result) {
-        die('Invalid query: ' . mysqli_error($con));
-    }
-}
+//
+// function automate_confirm_location(){
+//     $con=mysqli_connect ("sql101.epizy.com","epiz_25484260", "xiJMzzwuqR","epiz_25484260_covid123");
+//     if (!$con) {
+//         die('Not connected : ' . mysqli_connect_error());
+//     }
+//     // update location with confirm if admin confirm.
+//     $query = "update locations set location_status = 1  WHERE location_status = 0 ";
+//     $result = mysqli_query($con,$query);
+//     echo "Updated Successfully";
+//     if (!$result) {
+//         die('Invalid query: ' . mysqli_error($con));
+//     }
+// }
 
 ?>
