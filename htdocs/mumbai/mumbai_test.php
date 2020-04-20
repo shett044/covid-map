@@ -412,7 +412,6 @@ Place marker with info window
           zoom: 18,
            mapTypeId: 'roadmap',
            streetViewControl:false,
-        //    gestureHandling: 'cooperative',
            restriction: {
             latLngBounds: MUMBAI_BOUNDS,
             strictBounds: false,
