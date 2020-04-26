@@ -22,14 +22,18 @@ def parse_base64(x):
         if not x['Base64'].endswith('=='):
             x['Base64'] += "=="
         info_html = base64.b64decode(x['Base64']).decode('ascii', 'ignore')
-        info_html = info_html.split('</b>')
-        issue_type = info_html[1].split('<br>')[0]
-        # Get red/blue or orange color
-        issue_type = re.split('-| ', issue_type)[0].strip()
-        issue_type = "Yellow" if issue_type == "Blue" else issue_type
-
-        address = re.escape("<b> BMC verified </b><br>" + info_html[2].split('<br>')[1].strip().replace('\n', '<br>'))
-        return {'issue_color': issue_type, 'address': address}
+        # info_html = info_html.split('</b>')
+        # issue_type = info_html[1].split('<br>')[0]
+        # # Get red/blue or orange color
+        # issue_type = re.split('-| ', issue_type)[0].strip()
+        # issue_type = "Yellow" if issue_type == "Blue" else issue_type
+        #
+        # address = re.escape("<b> BMC verified </b><br>" + info_html[2].split('<br>')[1].strip().replace('\n', '<br>'))
+        # return {'issue_color': issue_type, 'address': address}
+        info_html = base64.b64decode(x['Base64']).decode('ascii', 'ignore')
+        info_html = info_html.strip()
+        address = "<b> BMC verified </b><br>" + info_html
+        return {'issue_color': "Red", 'address': address}
     except Exception as e:
         print("Issue ", e, x)
         raise e
