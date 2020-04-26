@@ -3,6 +3,12 @@
   <head>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
+     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
     <title>Corona map tracker</title>
     <style>
       /* Always set the map height explicitly to define the size of the div
@@ -115,29 +121,99 @@
         width: 345px;
       }
     </style>
+    
   </head>
   <body>
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+
+
+<nav class="navbar sticky-top navbar-dark bg-dark " style="background-color: #e3f2fd;">
+  <span class="navbar-brand mb-0 h1">Mumbai Coronavirus Map Tracker</span>
+</nav>
+
+
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+  <li class="nav-item">
+    <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Home</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" id="info-report-tab" data-toggle="tab" href="#info-report" role="tab" aria-controls="profile" aria-selected="false">How to Report</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">Contact us</a>
+  </li>
+</ul>
+<div class="tab-content" id="myTabContent">
+    <div class="tab-pane fade show active card-body" id="home" role="tabpanel" aria-labelledby="home-tab">
+        <h5 class="card-title">Developed by Mumbaikars</h5>
+        <p class="card-text">Please join our fight against COVID-19 by alerting Mumbaikars of the COVID hotspots near their location. </p>
+        <p class = "card-text">
+        The data used is verified by BMC and published on website here http://stopcoronavirus.mcgm.gov.in/ . We have done our best efforts to add each and every area, in case of any error/suggestion please go to Contact us
+        </p>
+        
+    </div>
+    <div class="tab-pane fade card-body" id="info-report" role="tabpanel" aria-labelledby="info-report-tab">
+        <h5 class = "card-title"> If you know any COVID cases nearby location follow these steps: </h5>
+        <div class="card-deck">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Step 1: Add the location</h5>
+                    <p class="card-text">Use the search bar or go to the COVID case location using Google map. Navigate using two fingers</p>
+                </div>
+            </div>
+            <div class="card" >
+                <div class="card-body">
+                    <h5 class="card-title">Step 2: Add marker</h5>
+                    <p class="card-text">Click on the building/locality. You will see a purple marker. Click Report case to add confirmed Coronavirus case. </p>
+                </div>
+            </div>
+            <div class="card" >
+                <div class="card-body">
+                    <h5 class="card-title">Step 3: Check the report or delete </h5>
+                    <p class="card-text">You can check the reported marker and get the info or delete the marker if you made a mistake.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
+        <div class="card">
+            <div class="card-body">
+                <blockquote class="blockquote mb-0">
+                <p>For any issues or help please write to us at  coronamaptracker@gmail.com </p>
+                </blockquote>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
 
     <input id="pac-input" class="controls" type="text" placeholder="Search Box">
     <div id="goCenterUI" title = "Go to current location", onclick = "goToCurrentLoc()"> 
         <img src = "https://i.stack.imgur.com/orZ4x.png" id="goCenterText"> 
         </img>
     </div>
+
     <div id="map"></div>
-    <div id="legend"><h3>Legend</h3></div>
+    <div id="legend"><h5>Filters </h5></div>
     <script>
     
     var red_icon = 'red-dot.png';
     var current_loc={lat: 19.076042, lng: 72.877535};
     // # https://www.rapidtables.com/web/color/blue-color.html
-    var red_icon = {url: 'https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=•|B22222', name: 'BMC verified: Red Containment zone', color : 'red'};
+    var red_icon = {url: 'https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=•|B22222', name: 'Containment zone: BMC verified', color : 'red'};
      var purple_icon = 'purple-dot.png';
      var purple_icon = {url:'https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=•|8A2BE2', name : 'Unverified Crowd report', color : 'purple'};
     var center_icon = {url: 'https://i.stack.imgur.com/orZ4x.png', name : 'Center', color : 'blue'};
 // moccasin FFDAB9
-    var orange_icon = {url:'https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=•|E9967A', name : 'BMC verified: Orange Containment zone', color : 'orange'};
+    var orange_icon = {url:'https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=•|E9967A', name : 'Isolation BMC Phase-1: BMC verfiied', color : 'orange'};
     var yellow_icon = 'yellow.png';
-    var yellow_icon = {url:'https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=•|F0E68C', name : 'BMC verified: Yellow Containment zone', color : 'yellow'};
+    var yellow_icon = {url:'https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=•|F0E68C', name : 'Isolation Private: BMC verified', color : 'yellow'};
 
     var legend_icons_list=[red_icon, orange_icon, yellow_icon, purple_icon]
 
@@ -215,6 +291,15 @@
         }
     }
 
+    function text_icon_date(icon){
+        if(icon.color == "red"){
+            return `<tr><td>Confirmed case ${dt}</td></tr>`
+        }
+        else{
+            return `<tr><td>Updated on ${dt}</td></tr>`
+        }
+    }
+
    /**
    Callback from Get request that fetches confirmed reports.
    Each case will be shown in the map
@@ -227,11 +312,16 @@
         var confirmed = 0;
         for (i = 0; i < locations.length; i++) {
             [id, lat,lng, desc,dt, issue_color, isBMC] = locations[i]
-            marker_id = createMarker(lat, lng, desc, new google.maps.LatLng(lat,lng),true)
+            if(getMarkerUniqueId(lat,lng) in success_markers) {
+                continue;
+            }
+            marker_id = createMarker(lat, lng, desc, new google.maps.LatLng(lat,lng),true)  
             marker = success_markers[marker_id]
-            marker.setIcon(issue_color_to_icon(issue_color))
+            icon = issue_color_to_icon(issue_color)
+            marker.setIcon(icon)
             // setting custom html
-            trs = [`<td id ='manual_description'><b>${desc}</b></td>`, `<tr><td>Confirmed case ${dt}</td></tr>`]
+            // ``
+            trs = [`<td id ='manual_description'><b>${desc}</b></td>`, text_icon_date(icon)]
             table=  ` <table class=map1>${trs.join('\n')}</table>`
             info_html = `<div id='info_ ${markerId}'>${table}</div>`
 
@@ -571,7 +661,9 @@ Place marker with info window
       }
 
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCPgOhAY-RUz7780qHD3e8p2kpyZVrll68&libraries=places&callback=initAutocomplete"
+    <!-- AIzaSyDohIUnMgGyTrRhOxn1HI7qE3wDHiMUvMI-->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDohIUnMgGyTrRhOxn1HI7qE3wDHiMUvMI&libraries=places&callback=initAutocomplete"
          async defer></script>
+
   </body>
 </html>
